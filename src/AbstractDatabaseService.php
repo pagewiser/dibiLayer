@@ -152,14 +152,13 @@ abstract class AbstractDatabaseService extends \Nette\Object
 
 
 	/**
-	 * Simple search by filter
+	 * Filter baseQuery by given filter
 	 *
-	 * @param \Pagewiser\DAL\Dibi\IFilter $filter Filter
-	 * @param \Nette\Utils\Paginator $paging Paging
+	 * @param IFilter $filter
 	 *
-	 * $return array Found records
+	 * @return \DibiFluent
 	 */
-	public function simpleSearch(\Pagewiser\DAL\Dibi\IFilter $filter = NULL, \Nette\Utils\Paginator $paging = NULL)
+	public function filterQuery(\Pagewiser\DAL\Dibi\IFilter $filter = NULL)
 	{
 		$query = $this->baseQuery();
 
@@ -170,6 +169,22 @@ abstract class AbstractDatabaseService extends \Nette\Object
 				$query->where('%n.%n = %s', $this->tableName, $key, $value);
 			}
 		}
+
+		return $query;
+	}
+
+
+	/**
+	 * Simple search by filter
+	 *
+	 * @param \Pagewiser\DAL\Dibi\IFilter $filter Filter
+	 * @param \Nette\Utils\Paginator $paging Paging
+	 *
+	 * $return array Found records
+	 */
+	public function simpleSearch(\Pagewiser\DAL\Dibi\IFilter $filter = NULL, \Nette\Utils\Paginator $paging = NULL)
+	{
+		$query = $this->filterQuery($filter);
 
 		if (isset($paging))
 		{
@@ -190,22 +205,10 @@ abstract class AbstractDatabaseService extends \Nette\Object
 	 */
 	public function simpleSearchCount(\Pagewiser\DAL\Dibi\IFilter $filter = NULL)
 	{
-		$query = $this->baseQuery();
-
-		if (is_object($filter) && count($filter->getDefinition()))
-		{
-			foreach ($filter->getDefinition() as $key => $value)
-			{
-				$query->where('%n.%n = %s', $this->tableName, $key, $value);
-			}
-		}
-
-		if (isset($paging))
-		{
-			$query->limit($paging->getItemsPerPage())->offset($paging->getOffset());
-		}
+		$query = $this->filterQuery($filter);
 
 		$query->select(FALSE)->select('COUNT(*)');
+
 		return $query->fetchSingle();
 	}
 
