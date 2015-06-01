@@ -26,7 +26,37 @@ abstract class AbstractDatabaseService extends \Nette\Object
 	/**
 	 * @var array $onSave Callbacks called when entity is saved
 	 */
-	public $onSave;
+	public $onSave = array();
+
+	/**
+	 * @var array $onBeforeInsert Callbacks called before entity is inserted
+	 */
+	public $onBeforeInsert = array();
+
+	/**
+	 * @var array $onInserted Callbacks called after entity is inserted
+	 */
+	public $onInserted = array();
+
+	/**
+	 * @var array $onBeforeUpdate Callbacks called before entity is updated
+	 */
+	public $onBeforeUpdate = array();
+
+	/**
+	 * @var array $onUpdated Callbacks called after entity is updated
+	 */
+	public $onUpdated = array();
+
+	/**
+	 * @var array $onBeforeDelete Callbacks called before entity is deleted
+	 */
+	public $onBeforeDelete = array();
+
+	/**
+	 * @var array $onDeleted Callbacks called after entity is deleted
+	 */
+	public $onDeleted = array();
 
 	protected $slugCache = array();
 
@@ -39,6 +69,12 @@ abstract class AbstractDatabaseService extends \Nette\Object
 	protected function getIdColumn()
 	{
 		return 'id';
+	}
+
+
+	public function getTableName()
+	{
+		return $this->tableName;
 	}
 
 
@@ -57,6 +93,17 @@ abstract class AbstractDatabaseService extends \Nette\Object
 		}
 
 		$this->onSave[] = array($this, 'cleanBuffer');
+	}
+
+
+	public function addEventListener(EventListener $eventListener)
+	{
+		$this->onBeforeInsert[] = array($eventListener, 'onBeforeInsert');
+		$this->onInserted[] = array($eventListener, 'onInserted');
+		$this->onBeforeUpdate[] = array($eventListener, 'onBeforeUpdate');
+		$this->onUpdate[] = array($eventListener, 'onUpdate');
+		$this->onBeforeDelete[] = array($eventListener, 'onBeforeDelete');
+		$this->onDeleted[] = array($eventListener, 'onDeleted');
 	}
 
 
@@ -130,8 +177,10 @@ abstract class AbstractDatabaseService extends \Nette\Object
 			throw new \InvalidArgumentException('Data contains database record ID value.');
 		}
 
+		$this->onBeforeInsert($this, $data);
 		$this->db->insert($this->tableName, $data)->execute();
 		$id = $this->db->getInsertId();
+		$this->onAfterInsert($this, $id, $data);
 
 		$this->onSave($this, $data);
 
@@ -143,7 +192,9 @@ abstract class AbstractDatabaseService extends \Nette\Object
 	{
 		unset($data[$this->getIdColumn()]);
 
+		$this->onBeforeUpdate($this, $id, $data);
 		$this->db->query('UPDATE %n', $this->tableName, ' SET ', $data, ' WHERE %n = %i', $this->getIdColumn(), $id);
+		$this->onAfterUpdate($this, $id, $data);
 
 		$this->onSave($this, $data);
 
