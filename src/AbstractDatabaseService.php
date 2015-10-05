@@ -130,6 +130,8 @@ abstract class AbstractDatabaseService extends \Nette\Object
 			throw new \InvalidArgumentException('Data contains database record ID value.');
 		}
 
+		$data = $this->remapStoreData($data);
+
 		$this->db->insert($this->tableName, $data)->execute();
 		$id = $this->db->getInsertId();
 
@@ -141,6 +143,7 @@ abstract class AbstractDatabaseService extends \Nette\Object
 
 	public function update($id, $data)
 	{
+		$data = $this->remapStoreData($data);
 		unset($data[$this->getIdColumn()]);
 
 		$this->db->query('UPDATE %n', $this->tableName, ' SET ', $data, ' WHERE %n = %i', $this->getIdColumn(), $id);
@@ -148,6 +151,12 @@ abstract class AbstractDatabaseService extends \Nette\Object
 		$this->onSave($this, $data);
 
 		return TRUE;
+	}
+
+
+	protected function remapStoreData($data)
+	{
+		return $data;
 	}
 
 
