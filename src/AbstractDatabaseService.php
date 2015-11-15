@@ -132,6 +132,7 @@ abstract class AbstractDatabaseService extends \Nette\Object
 
 		$data = $this->remapStoreData($data);
 
+		$this->onBeforeInsert($this, $data);
 		$this->db->insert($this->tableName, $data)->execute();
 		$id = $this->db->getInsertId();
 
