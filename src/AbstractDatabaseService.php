@@ -182,7 +182,7 @@ abstract class AbstractDatabaseService extends \Nette\Object
 		$this->onBeforeInsert($this, $data);
 		$this->db->insert($this->tableName, $data)->execute();
 		$id = $this->db->getInsertId();
-		$this->onAfterInsert($this, $id, $data);
+		$this->onInserted($this, $id, $data);
 
 		$this->onSave($this, $data);
 
@@ -197,7 +197,7 @@ abstract class AbstractDatabaseService extends \Nette\Object
 
 		$this->onBeforeUpdate($this, $id, $data);
 		$this->db->query('UPDATE %n', $this->tableName, ' SET ', $data, ' WHERE %n = %i', $this->getIdColumn(), $id);
-		$this->onAfterUpdate($this, $id, $data);
+		$this->onUpdated($this, $id, $data);
 
 		$this->onSave($this, $data);
 
