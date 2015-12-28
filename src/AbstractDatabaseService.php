@@ -226,7 +226,14 @@ abstract class AbstractDatabaseService extends \Nette\Object
 		{
 			foreach ($filter->getDefinition() as $key => $value)
 			{
-				$query->where('%n.%n = %s', $this->tableName, $key, $value);
+				if (is_array($value))
+				{
+					$query->where('%n.%n IN %in', $this->tableName, $key, $value);
+				}
+				else
+				{
+					$query->where('%n.%n = %s', $this->tableName, $key, $value);
+				}
 			}
 		}
 
