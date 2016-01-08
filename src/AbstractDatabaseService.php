@@ -226,18 +226,24 @@ abstract class AbstractDatabaseService extends \Nette\Object
 		{
 			foreach ($filter->getDefinition() as $key => $value)
 			{
-				if (is_array($value))
-				{
-					$query->where('%n.%n IN %in', $this->tableName, $key, $value);
-				}
-				else
-				{
-					$query->where('%n.%n = %s', $this->tableName, $key, $value);
-				}
+				$this->filterColumn($query, $this->tableName, $key, $value);
 			}
 		}
 
 		return $query;
+	}
+
+
+	protected function filterColumn($query, $table, $column, $value)
+	{
+		if (is_array($value))
+		{
+			$query->where('%n.%n IN %in', $this->tableName, $this->camelToUnderscore($column), $value);
+		}
+		else
+		{
+			$query->where('%n.%n = %s', $this->tableName, $this->camelToUnderscore($column), $value);
+		}
 	}
 
 
@@ -354,6 +360,17 @@ abstract class AbstractDatabaseService extends \Nette\Object
 
 		$this->slugCache[$id] = $id . '~' . \Nette\Utils\Strings::webalize($row['name']);
 		return $id . '~' . \Nette\Utils\Strings::webalize($row['name']);
+	}
+
+
+	protected function camelToUnderscore($string)
+	{
+		preg_match_all('!([A-Z][A-Z0-9]*(?=$|[A-Z][a-z0-9])|[A-Za-z][a-z0-9]+)!', $string, $matches);
+		$ret = $matches[0];
+		foreach ($ret as &$match) {
+			$match = $match == strtoupper($match) ? strtolower($match) : lcfirst($match);
+		}
+		return implode('_', $ret);
 	}
 
 
