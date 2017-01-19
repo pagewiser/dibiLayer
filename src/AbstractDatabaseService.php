@@ -184,7 +184,7 @@ abstract class AbstractDatabaseService extends \Nette\Object
 		$id = $this->db->getInsertId();
 		$this->onInserted($this, $id, $data);
 
-		$this->onSave($this, $data);
+		$this->onSave($this, $data, $id);
 
 		return $id;
 	}
@@ -199,7 +199,7 @@ abstract class AbstractDatabaseService extends \Nette\Object
 		$this->db->query('UPDATE %n', $this->tableName, ' SET ', $data, ' WHERE %n = %i', $this->getIdColumn(), $id);
 		$this->onUpdated($this, $id, $data);
 
-		$this->onSave($this, $data);
+		$this->onSave($this, $data, $id);
 
 		return TRUE;
 	}
