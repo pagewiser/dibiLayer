@@ -5,18 +5,17 @@ namespace Pagewiser\DAL\Dibi;
 /**
  * Abstract class for all database services
  */
-abstract class AbstractDatabaseService extends \Nette\Object
+abstract class AbstractDatabaseService
 {
+
+	use \Nette\SmartObject;
+
+	protected \Dibi\Connection $db;
 
 	/**
 	 * @var string $tableName Table name
 	 */
 	protected $tableName;
-
-	/**
-	 * @var \DibiConnection $db Database connection
-	 */
-	protected $db;
 
 	/**
 	 * @var array $buffer Short query cache
@@ -81,17 +80,16 @@ abstract class AbstractDatabaseService extends \Nette\Object
 	/**
 	 * Create service instance and inject dibi connection
 	 *
-	 * @param \DibiConnection $dibi
+	 * @param \Dibi\Connection $db
 	 */
-	public function __construct(\DibiConnection $dibi)
+	public function __construct(\Dibi\Connection $db)
 	{
-		$this->db = $dibi;
-
 		if (empty($this->tableName))
 		{
 			throw new \Nette\InvalidStateException('Unknown table to select from.');
 		}
 
+		$this->db = $db;
 		$this->onSave[] = array($this, 'cleanBuffer');
 	}
 
@@ -127,7 +125,7 @@ abstract class AbstractDatabaseService extends \Nette\Object
 	/**
 	 * Get base query with fluent interface
 	 *
-	 * @return \DibiFluent
+	 * @return \Dibi\Fluent
 	 */
 	public function baseQuery()
 	{
@@ -214,15 +212,14 @@ abstract class AbstractDatabaseService extends \Nette\Object
 	/**
 	 * Filter baseQuery by given filter
 	 *
-	 * @param IFilter $filter
 	 *
-	 * @return \DibiFluent
+	 * @return \Dibi\Fluent
 	 */
 	public function filterQuery(\Pagewiser\DAL\Dibi\IFilter $filter = NULL)
 	{
 		$query = $this->baseQuery();
 
-		if (is_object($filter) && count($filter->getDefinition()))
+		if (is_object($filter) && (is_countable($filter->getDefinition()) ? count($filter->getDefinition()) : 0))
 		{
 			foreach ($filter->getDefinition() as $key => $value)
 			{
@@ -323,7 +320,7 @@ abstract class AbstractDatabaseService extends \Nette\Object
 
 	protected function _slugIn($url)
 	{
-		if (strpos($url, '~') !== FALSE)
+		if (str_contains($url, '~'))
 		{
 			return substr($url, 0, strpos($url, '~'));
 		}
@@ -334,7 +331,7 @@ abstract class AbstractDatabaseService extends \Nette\Object
 
 	protected function _slugOut($id)
 	{
-		if ((is_array($id) || $id instanceof \Traversable))
+		if ((is_iterable($id)))
 		{
 			$slug = $id['slug'];
 			$id = $id['id'];
